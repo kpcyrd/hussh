@@ -1,0 +1,18 @@
+[package]
+name = "hussh"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive", "env"] }
+env_logger = "0.11"
+futures-util = { version = "0.3", default-features = false }
+log = "0.4"
+rand = "0.10"
+# default features but without `rsa`
+russh = { version = "0.62", default-features = false, features = ["flate2", "aws-lc-rs", "serde"] }
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["fs"] }
+toml = "1"
+zeroize = "1"
