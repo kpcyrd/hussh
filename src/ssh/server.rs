@@ -11,10 +11,8 @@ pub struct SshServer {
 }
 
 impl SshServer {
-    pub fn new(shared: Shared) -> Self {
-        Self {
-            shared: Arc::new(shared),
-        }
+    pub fn new(shared: Arc<Shared>) -> Self {
+        Self { shared }
     }
 
     pub async fn run(&mut self, key: PrivateKey, bind: SocketAddr) -> Result<()> {

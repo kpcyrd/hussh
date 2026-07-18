@@ -4,6 +4,7 @@ pub(crate) mod errors;
 pub(crate) mod keygen;
 pub(crate) mod relay;
 pub(crate) mod shared;
+pub(crate) mod signals;
 pub(crate) mod ssh;
 
 use crate::args::Args;
@@ -13,6 +14,7 @@ use clap::Parser;
 use env_logger::Env;
 use russh::keys::{Algorithm, PrivateKey, ssh_key::LineEnding};
 use std::path::Path;
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -38,8 +40,17 @@ async fn main() -> Result<()> {
         let (shared, rx) = Shared::from_config(config);
         let key = keygen::init_from_path(Path::new("sshd.key")).await?;
 
-        let mut server = ssh::server::SshServer::new(shared);
-        tokio::try_join!(relay::run(rx), server.run(key, args.bind))?;
-        Ok(())
+        let bind = args.bind;
+        let shared = Arc::new(shared);
+        let mut server = ssh::server::SshServer::new(shared.clone());
+
+        let sighup = signals::sighup(shared, args);
+
+        tokio::select! {
+            res = relay::run(rx) => res,
+            res = server.run(key, bind) => res,
+            res = sighup => Ok(res),
+            res = signals::sigterm() => Ok(res),
+        }
     }
 }

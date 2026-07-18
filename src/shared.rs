@@ -1,30 +1,37 @@
 use crate::config::{Config, Destination, Rule};
 use crate::errors::*;
 use crate::relay::Relay;
+use arc_swap::ArcSwap;
 use russh::keys::PublicKey;
 use std::net::IpAddr;
+use std::sync::Arc;
 use tokio::sync::mpsc;
 
 const BACKLOG: usize = 32;
 
 #[derive(Debug)]
 pub struct Shared {
-    config: Config,
+    config: ArcSwap<Config>,
     relay_tx: mpsc::Sender<Relay>,
 }
 
 impl Shared {
     pub fn from_config(config: Config) -> (Self, mpsc::Receiver<Relay>) {
         let (relay_tx, relay_rx) = mpsc::channel(BACKLOG);
+        let config = ArcSwap::new(Arc::new(config));
         (Self { config, relay_tx }, relay_rx)
     }
 
-    fn matching_rules(
-        &self,
+    pub fn replace_config(&self, config: Config) {
+        self.config.store(Arc::new(config));
+    }
+
+    fn matching_rules<'a>(
+        config: &'a Config,
         username: &str,
         public_key: &PublicKey,
-    ) -> impl Iterator<Item = &Rule> {
-        self.config.rules.iter().filter(|rule| {
+    ) -> impl Iterator<Item = &'a Rule> {
+        config.rules.iter().filter(|rule| {
             (rule.username.is_none() || rule.username.as_deref() == Some(username))
                 && rule.ssh_keys.contains(public_key)
                 && !rule.permit.is_empty()
@@ -32,11 +39,13 @@ impl Shared {
     }
 
     pub fn may_auth(&self, username: &str, public_key: &PublicKey) -> bool {
-        self.matching_rules(username, public_key).next().is_some()
+        Self::matching_rules(&self.config.load(), username, public_key)
+            .next()
+            .is_some()
     }
 
     pub fn auth(&self, username: &str, public_key: &PublicKey) -> Vec<Destination> {
-        self.matching_rules(username, public_key)
+        Self::matching_rules(&self.config.load(), username, public_key)
             .flat_map(|rule| rule.permit.iter())
             .cloned()
             .collect()
