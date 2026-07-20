@@ -1,6 +1,9 @@
 [package]
 name = "hussh"
 version = "0.1.0"
+description = "Memory-safe SSH daemon for restricted TCP forwarding"
+authors = ["kpcyrd <git@rxv.cc>"]
+repository = "https://github.com/kpcyrd/hussh"
 edition = "2024"
 
 [dependencies]
