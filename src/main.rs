@@ -12,7 +12,6 @@ use crate::errors::*;
 use crate::shared::Shared;
 use clap::Parser;
 use env_logger::Env;
-use russh::keys::{Algorithm, PrivateKey, ssh_key::LineEnding};
 use std::net::{IpAddr, Ipv6Addr, SocketAddr};
 use std::sync::Arc;
 
@@ -33,8 +32,7 @@ async fn main() -> Result<()> {
     env_logger::init_from_env(Env::default().default_filter_or(log_level));
 
     if args.keygen {
-        let key = PrivateKey::random(&mut rand::rng(), Algorithm::Ed25519)?;
-        let key = key.to_openssh(LineEnding::LF)?;
+        let key = keygen::keygen_str()?;
         println!("{}", key.as_str().trim_end());
         Ok(())
     } else {

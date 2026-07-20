@@ -16,13 +16,11 @@ pub fn keygen() -> Result<PrivateKey> {
     Ok(privkey)
 }
 
-/*
 pub fn keygen_str() -> Result<Zeroizing<String>> {
     let privkey = keygen()?;
     let privkey = privkey.to_openssh(LineEnding::LF)?;
     Ok(privkey)
 }
-*/
 
 fn privkey_str(privkey: &PrivateKey) -> Result<Zeroizing<String>> {
     let privkey = privkey.to_openssh(LineEnding::LF)?;
