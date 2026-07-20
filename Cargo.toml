@@ -13,10 +13,11 @@ arc-swap = "1"
 clap = { version = "4", features = ["derive", "env"] }
 env_logger = "0.11"
 futures-util = { version = "0.3", default-features = false }
+internal-russh-forked-ssh-key = { version = "=0.6.16", features = ["serde"] }
 log = "0.4"
-rand = "0.10"
+rand = { version = "0.9", features = ["thread_rng"] }
 # default features but without `rsa`
-russh = { version = "0.62", default-features = false, features = ["flate2", "aws-lc-rs", "serde"] }
+russh = { version = "0.57", default-features = false, features = ["flate2", "aws-lc-rs"] }
 serde = { version = "1", features = ["derive"] }
 tokio = { version = "1", features = ["fs", "signal"] }
 toml = "1"

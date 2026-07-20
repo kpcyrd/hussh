@@ -5,7 +5,7 @@ use crate::shared::Shared;
 use russh::{
     Channel, ChannelId,
     keys::PublicKey,
-    server::{Auth, ChannelOpenHandle, Msg, Session},
+    server::{Auth, Msg, Session},
 };
 use std::collections::BTreeMap;
 use std::net::SocketAddr;
@@ -74,13 +74,11 @@ impl russh::server::Handler for SshSession {
     async fn channel_open_session(
         &mut self,
         channel: Channel<Msg>,
-        open: ChannelOpenHandle,
         _session: &mut Session,
-    ) -> Result<(), Self::Error> {
+    ) -> Result<bool, Self::Error> {
         debug!("Channel open session: {channel:?}");
         self.pending_channels.insert(channel.id(), channel);
-        open.accept().await;
-        Ok(())
+        Ok(true)
     }
 
     async fn channel_close(&mut self, channel_id: ChannelId, _session: &mut Session) -> Result<()> {
@@ -133,7 +131,7 @@ impl russh::server::Handler for SshSession {
         let handle = session.handle();
 
         let error_msg = "Shell access disabled.\n";
-        let _ = handle.extended_data(channel_id, 1, error_msg).await;
+        let _ = handle.extended_data(channel_id, 1, error_msg.into()).await;
         let _ = handle.exit_status_request(channel_id, 1).await;
         let _ = handle.eof(channel_id).await;
         let _ = handle.close(channel_id).await;
@@ -161,18 +159,16 @@ impl russh::server::Handler for SshSession {
         port_to_connect: u32,
         _originator_address: &str,
         _originator_port: u32,
-        open: ChannelOpenHandle,
         _session: &mut Session,
-    ) -> Result<(), Self::Error> {
+    ) -> Result<bool, Self::Error> {
         self.shared.relay(
             Relay {
                 host: host_to_connect.to_string(),
                 port: port_to_connect as u16,
                 stream: channel.into_stream(),
-                open,
             },
             &self.permitted,
         );
-        Ok(())
+        Ok(true)
     }
 }

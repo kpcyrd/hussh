@@ -1,8 +1,8 @@
 use crate::errors::*;
 use futures_util::{StreamExt, stream::FuturesUnordered, task::SpawnExt};
 use russh::{
-    ChannelOpenFailure, ChannelStream,
-    server::{ChannelOpenHandle, Msg},
+    ChannelStream,
+    server::Msg,
 };
 use std::fmt;
 use tokio::io;
@@ -13,7 +13,6 @@ pub struct Relay {
     pub host: String,
     pub port: u16,
     pub stream: ChannelStream<Msg>,
-    pub open: ChannelOpenHandle,
 }
 
 impl fmt::Display for Relay {
@@ -28,12 +27,10 @@ async fn relay(mut relay: Relay) -> Result<()> {
         Ok(sock) => sock,
         Err(err) => {
             error!("Failed to connect to {relay}: {err:#}");
-            relay.open.reject(ChannelOpenFailure::ConnectFailed).await;
             return Ok(());
         }
     };
     info!("Connected to {relay}");
-    relay.open.accept().await;
 
     io::copy_bidirectional(&mut sock, &mut relay.stream).await?;
 

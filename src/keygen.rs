@@ -5,9 +5,10 @@ use std::path::Path;
 use tokio::fs;
 use tokio::io::AsyncWriteExt;
 use zeroize::Zeroizing;
+use russh::keys::signature::rand_core::OsRng;
 
 pub fn keygen() -> Result<PrivateKey> {
-    let privkey = PrivateKey::random(&mut rand::rng(), Algorithm::Ed25519)?;
+    let privkey = PrivateKey::random(&mut OsRng, Algorithm::Ed25519)?;
     let pubkey = privkey.public_key();
 
     let fp = pubkey.fingerprint(HashAlg::Sha256);
