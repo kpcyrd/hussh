@@ -3,6 +3,7 @@ name = "hussh"
 version = "0.1.0"
 description = "Memory-safe SSH daemon for restricted TCP forwarding"
 authors = ["kpcyrd <git@rxv.cc>"]
+license = "GPL-3.0-or-later"
 repository = "https://github.com/kpcyrd/hussh"
 edition = "2024"
 
