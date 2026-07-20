@@ -11,6 +11,9 @@ pub struct Args {
     /// Increase logging output (can be used multiple times)
     #[arg(short, long, global = true, action(ArgAction::Count))]
     pub verbose: u8,
+    /// Path to the data directory
+    #[arg(short = 'D', long, default_value = ".")]
+    pub data_dir: PathBuf,
     /// Generate an ssh private key
     #[arg(short = 'K', long)]
     pub keygen: bool,
