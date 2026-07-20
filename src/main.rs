@@ -13,7 +13,11 @@ use crate::shared::Shared;
 use clap::Parser;
 use env_logger::Env;
 use russh::keys::{Algorithm, PrivateKey, ssh_key::LineEnding};
+use std::net::{IpAddr, Ipv6Addr, SocketAddr};
 use std::sync::Arc;
+
+// "[::]:20";
+const DEFAULT_SSHD_BIND_ADDR: SocketAddr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), 20);
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -36,10 +40,14 @@ async fn main() -> Result<()> {
     } else {
         let config = args.config().await?;
 
+        let bind_addr = config
+            .sshd
+            .bind_addr(&args)
+            .unwrap_or(DEFAULT_SSHD_BIND_ADDR);
+
         let (shared, rx) = Shared::from_config(config);
         let key = keygen::init_from_path(&args.data_dir.join("sshd.key")).await?;
 
-        let bind = args.bind;
         let shared = Arc::new(shared);
         let mut server = ssh::server::SshServer::new(shared.clone());
 
@@ -47,7 +55,7 @@ async fn main() -> Result<()> {
 
         tokio::select! {
             res = relay::run(rx) => res,
-            res = server.run(key, bind) => res,
+            res = server.run(key, bind_addr) => res,
             res = sighup => Ok(res),
             res = signals::sigterm() => Ok(res),
         }

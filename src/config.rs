@@ -1,3 +1,4 @@
+use crate::args::Args;
 use crate::errors::*;
 use russh::keys::PublicKey;
 use serde::{Deserialize, Serialize};
@@ -9,6 +10,8 @@ use std::str::FromStr;
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Config {
+    #[serde(default)]
+    pub sshd: Sshd,
     #[serde(default)]
     pub rules: Vec<Rule>,
 }
@@ -29,6 +32,17 @@ impl Config {
         });
 
         Ok(config)
+    }
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct Sshd {
+    bind_addr: Option<SocketAddr>,
+}
+
+impl Sshd {
+    pub fn bind_addr(&self, args: &Args) -> Option<SocketAddr> {
+        args.bind.or(self.bind_addr)
     }
 }
 
@@ -172,6 +186,7 @@ mod tests {
         let config = fs::read_to_string("contrib/hussh.conf").await.unwrap();
         let config = Config::parse(&config).unwrap();
         assert_eq!(config, Config {
+            sshd: Default::default(),
             rules: vec![
                 Rule {
                     username: None,
@@ -208,6 +223,7 @@ permit = ["127.0.0.1:22", "[2001:db8::1]:*"]
         assert_eq!(
             config,
             Config {
+                sshd: Default::default(),
                 rules: vec![
                     Rule {
                         username: None,

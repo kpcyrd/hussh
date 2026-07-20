@@ -18,8 +18,8 @@ pub struct Args {
     #[arg(short = 'K', long)]
     pub keygen: bool,
     /// The address to bind the daemon to
-    #[arg(short = 'B', long, default_value = "[::]:2222")]
-    pub bind: SocketAddr,
+    #[arg(short = 'B', long)]
+    pub bind: Option<SocketAddr>,
     /// Path to daemon config file
     #[arg(short = 'c', long)]
     pub config: Option<PathBuf>,
