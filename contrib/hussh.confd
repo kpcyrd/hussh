@@ -1,3 +1,4 @@
+export HUSSH_DATA_DIR="/var/lib/hussh"
 hussh_user="hussh"
 hussh_group="hussh"
 hussh_args="-c /etc/hussh.conf"

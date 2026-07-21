@@ -12,7 +12,7 @@ pub struct Args {
     #[arg(short, long, global = true, action(ArgAction::Count))]
     pub verbose: u8,
     /// Path to the data directory
-    #[arg(short = 'D', long, default_value = ".")]
+    #[arg(short = 'D', long, default_value = ".", env = "HUSSH_DATA_DIR")]
     pub data_dir: PathBuf,
     /// Generate an ssh private key
     #[arg(short = 'K', long)]
