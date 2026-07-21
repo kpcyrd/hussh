@@ -1,0 +1,24 @@
+#!/sbin/openrc-run
+
+name=hussh
+description="hussh ssh daemon"
+
+command=/usr/bin/hussh
+command_args="$hussh_args"
+command_user="$hussh_user:$hussh_group"
+capabilities="^cap_net_bind_service"
+
+command_background=true
+pidfile="/run/$RC_SVCNAME.pid"
+error_logger="logger -t '${RC_SVCNAME}' -p daemon.info"
+
+depend() {
+	use dns logger
+	need localmount net
+	after firewall
+}
+
+start_pre() {
+	checkpath --directory --owner hussh:hussh --mode 0750 \
+		/var/lib/hussh
+}
