@@ -46,6 +46,8 @@ pub struct Sshd {
 pub struct Honeypot {
     pub spoof_server_id: Option<String>,
     #[serde(default)]
+    pub log_bruteforce_passwords: bool,
+    #[serde(default)]
     pub bait_password_bruteforce: bool,
 }
 

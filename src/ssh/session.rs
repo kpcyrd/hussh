@@ -7,7 +7,9 @@ use russh::{
     keys::PublicKey,
     server::{Auth, ChannelOpenHandle, Msg, Session},
 };
+use std::borrow::Cow;
 use std::collections::BTreeMap;
+use std::fmt;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
@@ -35,6 +37,26 @@ impl SshSession {
     }
 }
 
+struct PasswordAttempt<'a> {
+    username: Cow<'a, str>,
+    password: Cow<'a, str>,
+    src: Option<SocketAddr>,
+}
+
+impl fmt::Display for PasswordAttempt<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "password attempt")?;
+        if let Some(src) = self.src {
+            write!(f, " from {src}")?;
+        }
+        write!(
+            f,
+            " for user {:?} with password {:?}",
+            self.username, self.password
+        )
+    }
+}
+
 impl russh::server::Handler for SshSession {
     type Error = anyhow::Error;
 
@@ -50,6 +72,18 @@ impl russh::server::Handler for SshSession {
         } else {
             Ok(Auth::reject())
         }
+    }
+
+    async fn auth_password(&mut self, user: &str, password: &str) -> Result<Auth, Self::Error> {
+        if self.shared.config().honeypot.log_bruteforce_passwords {
+            let auth = PasswordAttempt {
+                username: Cow::Borrowed(user),
+                password: Cow::Borrowed(password),
+                src: self.addr,
+            };
+            debug!("Rejected {auth}");
+        }
+        Ok(Auth::reject())
     }
 
     async fn auth_publickey(
