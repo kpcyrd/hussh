@@ -26,6 +26,10 @@ impl Shared {
         self.config.store(Arc::new(config));
     }
 
+    pub fn config(&self) -> arc_swap::Guard<Arc<Config>> {
+        self.config.load()
+    }
+
     fn matching_rules<'a>(
         config: &'a Config,
         username: &str,
