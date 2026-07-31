@@ -1,5 +1,6 @@
 use crate::config::{Config, Destination, Rule};
 use crate::errors::*;
+use crate::honeypot;
 use crate::relay::Relay;
 use arc_swap::ArcSwap;
 use russh::keys::PublicKey;
@@ -13,13 +14,29 @@ const BACKLOG: usize = 32;
 pub struct Shared {
     config: ArcSwap<Config>,
     relay_tx: mpsc::Sender<Relay>,
+    honeypot_tx: mpsc::Sender<honeypot::PasswordAttempt>,
 }
 
 impl Shared {
-    pub fn from_config(config: Config) -> (Self, mpsc::Receiver<Relay>) {
+    pub fn from_config(
+        config: Config,
+    ) -> (
+        Self,
+        mpsc::Receiver<Relay>,
+        mpsc::Receiver<honeypot::PasswordAttempt>,
+    ) {
         let (relay_tx, relay_rx) = mpsc::channel(BACKLOG);
+        let (honeypot_tx, honeypot_rx) = mpsc::channel(honeypot::BACKLOG);
         let config = ArcSwap::new(Arc::new(config));
-        (Self { config, relay_tx }, relay_rx)
+        (
+            Self {
+                config,
+                relay_tx,
+                honeypot_tx,
+            },
+            relay_rx,
+            honeypot_rx,
+        )
     }
 
     pub fn replace_config(&self, config: Config) {
@@ -53,6 +70,10 @@ impl Shared {
             .flat_map(|rule| rule.permit.iter())
             .cloned()
             .collect()
+    }
+
+    pub async fn track_failed_pw_login(&self, auth: honeypot::PasswordAttempt) {
+        self.honeypot_tx.send(auth).await.ok();
     }
 
     pub fn relay(&self, relay: Relay, permitted: &[Destination]) {

@@ -47,6 +47,7 @@ pub struct Honeypot {
     pub spoof_server_id: Option<String>,
     #[serde(default)]
     pub log_bruteforce_passwords: bool,
+    pub report_url_bruteforce_passwords: Option<String>,
     #[serde(default)]
     pub bait_password_bruteforce: bool,
 }

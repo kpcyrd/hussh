@@ -1,6 +1,7 @@
 pub(crate) mod args;
 pub(crate) mod config;
 pub(crate) mod errors;
+pub(crate) mod honeypot;
 pub(crate) mod keygen;
 pub(crate) mod relay;
 pub(crate) mod shared;
@@ -43,17 +44,20 @@ async fn main() -> Result<()> {
             .bind_addr(&args)
             .unwrap_or(DEFAULT_SSHD_BIND_ADDR);
 
-        let (shared, rx) = Shared::from_config(config);
+        let (shared, relay_rx, honeypot_rx) = Shared::from_config(config);
         let key = keygen::init_from_path(&args.data_dir.join("sshd.key")).await?;
 
         let shared = Arc::new(shared);
         let mut server = ssh::server::SshServer::new(shared.clone());
 
-        let sighup = signals::sighup(shared, args);
+        let sighup = signals::sighup(shared.clone(), args);
 
         tokio::select! {
-            res = relay::run(rx) => res,
+            res = relay::run(relay_rx) => res,
             res = server.run(key, bind_addr) => res,
+            // This task does nothing unless configured
+            res = honeypot::logger(shared, honeypot_rx) => Ok(res),
+            // Signal handling
             res = sighup => Ok(res),
             res = signals::sigterm() => Ok(res),
         }
