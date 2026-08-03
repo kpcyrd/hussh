@@ -1,5 +1,6 @@
 use crate::config::Destination;
 use crate::errors::*;
+use crate::honeypot::PasswordAttempt;
 use crate::relay::Relay;
 use crate::shared::Shared;
 use russh::{
@@ -50,6 +51,16 @@ impl russh::server::Handler for SshSession {
         } else {
             Ok(Auth::reject())
         }
+    }
+
+    async fn auth_password(&mut self, user: &str, password: &str) -> Result<Auth, Self::Error> {
+        let auth = PasswordAttempt {
+            username: user.to_string(),
+            password: password.to_string(),
+            src: self.addr,
+        };
+        self.shared.track_failed_pw_login(auth).await;
+        Ok(Auth::reject())
     }
 
     async fn auth_publickey(

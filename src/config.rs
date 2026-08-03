@@ -13,6 +13,8 @@ pub struct Config {
     #[serde(default)]
     pub sshd: Sshd,
     #[serde(default)]
+    pub honeypot: Honeypot,
+    #[serde(default)]
     pub rules: Vec<Rule>,
 }
 
@@ -38,6 +40,16 @@ impl Config {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Sshd {
     bind_addr: Option<SocketAddr>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct Honeypot {
+    pub spoof_server_id: Option<String>,
+    #[serde(default)]
+    pub log_bruteforce_passwords: bool,
+    pub report_url_bruteforce_passwords: Option<String>,
+    #[serde(default)]
+    pub bait_password_bruteforce: bool,
 }
 
 impl Sshd {
@@ -187,6 +199,7 @@ mod tests {
         let config = Config::parse(&config).unwrap();
         assert_eq!(config, Config {
             sshd: Default::default(),
+            honeypot: Default::default(),
             rules: vec![
                 Rule {
                     username: None,
@@ -224,6 +237,7 @@ permit = ["127.0.0.1:22", "[2001:db8::1]:*"]
             config,
             Config {
                 sshd: Default::default(),
+                honeypot: Default::default(),
                 rules: vec![
                     Rule {
                         username: None,

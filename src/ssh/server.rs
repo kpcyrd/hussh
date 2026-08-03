@@ -2,9 +2,12 @@ use crate::errors::*;
 use crate::shared::Shared;
 use crate::ssh::session::SshSession;
 use russh::{MethodKind, MethodSet, SshId, keys::PrivateKey, server::*};
+use std::borrow::Cow;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::time::Duration;
+
+const SERVER_ID: &str = "SSH-2.0-flowers-are-blooming-in-antarctica";
 
 pub struct SshServer {
     shared: Arc<Shared>,
@@ -16,9 +19,26 @@ impl SshServer {
     }
 
     pub async fn run(&mut self, key: PrivateKey, bind: SocketAddr) -> Result<()> {
+        let config = self.shared.config();
+
+        // Replace the standard SSH banner if one is configured
+        let server_id = config
+            .honeypot
+            .spoof_server_id
+            .clone()
+            .map(Cow::Owned)
+            .unwrap_or(Cow::Borrowed(SERVER_ID));
+
+        // Make incorrect claims about password authentication if configured to do so
+        let methods = MethodSet::from(if config.honeypot.bait_password_bruteforce {
+            [MethodKind::Password, MethodKind::PublicKey].as_slice()
+        } else {
+            [MethodKind::PublicKey].as_slice()
+        });
+
         let config = russh::server::Config {
-            server_id: SshId::Standard("SSH-2.0-flowers-are-blooming-in-antarctica".into()),
-            methods: MethodSet::from([MethodKind::PublicKey].as_slice()),
+            server_id: SshId::Standard(server_id),
+            methods,
             /*
             keepalive_interval: Some(KEEPALIVE_INTERVAL),
             keepalive_max: KEEPALIVE_MAX as usize,
