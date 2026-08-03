@@ -90,7 +90,7 @@ pub async fn logger(shared: Arc<Shared>, mut rx: mpsc::Receiver<PasswordAttempt>
             debug!("Rejected {attempt}");
         }
 
-        if let Some(report_url) = &shared.config().honeypot.report_url_bruteforce_passwords {
+        if let Some(report_url) = &config.honeypot.report_url_bruteforce_passwords {
             submit(&http, report_url, &attempt).await;
         }
     }
