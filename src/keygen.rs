@@ -39,10 +39,15 @@ pub async fn init_from_path(path: &Path) -> Result<PrivateKey> {
         Err(err) if err.kind() == ErrorKind::NotFound => {
             debug!("No existing ssh key, generating one");
             let key = keygen()?;
-            let mut file = fs::OpenOptions::new()
-                .create_new(true)
-                .write(true)
-                .mode(0o600)
+            let mut opt = fs::OpenOptions::new();
+            opt.create_new(true).write(true);
+
+            #[cfg(unix)]
+            {
+                opt.mode(0o600);
+            }
+
+            let mut file = opt
                 .open(&path)
                 .await
                 .with_context(|| format!("Failed to create ssh private key file: {path:?}"))?;
