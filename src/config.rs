@@ -196,10 +196,27 @@ mod tests {
     #[tokio::test]
     async fn test_example() {
         let config = fs::read_to_string("contrib/hussh.conf").await.unwrap();
+
+        // Remove leading pound/comment markers, otherwise there won't be any settings
+        let config = config
+            .lines()
+            .map(|line| line.strip_prefix('#').unwrap_or(line))
+            .fold(String::new(), |mut acc, line| {
+                acc.push_str(line);
+                acc.push('\n');
+                acc
+            });
+
+        // Parse and compare
         let config = Config::parse(&config).unwrap();
         assert_eq!(config, Config {
-            sshd: Default::default(),
-            honeypot: Default::default(),
+            sshd: Sshd { bind_addr: Some("[::]:2".parse().unwrap()) },
+            honeypot: Honeypot {
+                spoof_server_id: Some("SSH-2.0-anything".to_string()),
+                log_bruteforce_passwords: true,
+                report_url_bruteforce_passwords: Some("https://example.com/report".to_string()),
+                bait_password_bruteforce: true,
+            },
             rules: vec![
                 Rule {
                     username: None,
@@ -207,7 +224,26 @@ mod tests {
                         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAbVfiAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".parse().unwrap(),
                     ].into_iter().collect(),
                     permit: vec![
+                        Destination::Anything,
+                    ],
+                },
+                Rule {
+                    username: None,
+                    ssh_keys: [
+                        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAbVfiAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".parse().unwrap(),
+                    ].into_iter().collect(),
+                    permit: vec![
                         Destination::ExactAddr("127.0.0.1:22".parse().unwrap()),
+                    ],
+                },
+                Rule {
+                    username: Some("proxy".to_string()),
+                    ssh_keys: [
+                        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAbVfiAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".parse().unwrap(),
+                    ].into_iter().collect(),
+                    permit: vec![
+                        Destination::PortAnywhere(80),
+                        Destination::PortAnywhere(443),
                     ],
                 },
             ],
