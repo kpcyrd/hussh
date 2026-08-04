@@ -201,7 +201,7 @@ mod tests {
         let config = config
             .lines()
             .map(|line| line.strip_prefix('#').unwrap_or(line))
-            .fold(String::new(), |mut acc, line| {
+            .fold(String::with_capacity(config.len()), |mut acc, line| {
                 acc.push_str(line);
                 acc.push('\n');
                 acc
