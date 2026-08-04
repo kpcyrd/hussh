@@ -38,6 +38,8 @@ async fn main() -> Result<()> {
         Ok(())
     } else {
         let config = args.config().await?;
+        let missing_configuration =
+            config.rules.is_empty() && config.honeypot == Default::default();
 
         let bind_addr = config
             .sshd
@@ -51,6 +53,12 @@ async fn main() -> Result<()> {
         let mut server = ssh::server::SshServer::new(shared.clone());
 
         let sighup = signals::sighup(shared.clone(), args);
+
+        if missing_configuration {
+            warn!(
+                "No rules or honeypot configuration found, the daemon will not do anything useful"
+            );
+        }
 
         tokio::select! {
             res = relay::run(relay_rx) => res,
