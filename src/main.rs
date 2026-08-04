@@ -16,8 +16,8 @@ use env_logger::Env;
 use std::net::{IpAddr, Ipv6Addr, SocketAddr};
 use std::sync::Arc;
 
-// "[::]:20";
-const DEFAULT_SSHD_BIND_ADDR: SocketAddr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), 20);
+// "[::]:2";
+const DEFAULT_SSHD_BIND_ADDR: SocketAddr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), 2);
 
 #[tokio::main]
 async fn main() -> Result<()> {
