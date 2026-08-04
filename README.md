@@ -38,6 +38,56 @@ ssh -p 20 -ND 1080 192.0.2.37
 ssh -p 20 -NL 127.0.0.1:1337:127.0.0.1:8080 192.0.2.37
 ```
 
+## Configuration
+
+A minimal configuration would look like this (allow any destination):
+
+```toml
+# /etc/hussh.conf
+[[rules]]
+ssh_keys = [
+    "ssh-ed25519 AAAAC3Nyourkeyhere",
+]
+# Allowed destinations to connect to
+permit = ["*"]
+```
+
+A more elaborate configuration could look like this:
+
+```toml
+# /etc/hussh.conf
+[sshd]
+# Change the ssh bind address (port 22 on ipv4 + ipv6)
+bind_addr = "[::]:22"
+
+[[rules]]
+# Instead of allowing any username, require a specific value
+username = "proxy"
+ssh_keys = [
+    "ssh-ed25519 AAAAC3Nyourkeyhere",
+    "ssh-ed25519 AAAAC3Nanotherkey",
+]
+# Allowed destinations to connect to
+permit = [
+    # All ports on specific destinations
+    "example.com:*",
+    "127.0.0.1:*",
+    # Filter by port
+    "*:443",
+]
+
+# If the previous rule didn't match, try this one next:
+[[rules]]
+ssh_keys = [
+    "ssh-ed25519 AAAAC3Nyourkeyhere",
+]
+permit = [
+    # Allow specific locations only
+    "127.0.0.1:8080",
+    "[::1]:8080",
+]
+```
+
 ## Honeypot usage
 
 In addition to operating as a network proxy, `hussh` can also be used as a
@@ -47,6 +97,7 @@ including the username, password and source address. This information can
 either be logged or forwarded as json to a remote HTTP endpoint:
 
 ```toml
+# /etc/hussh.conf
 [honeypot]
 # Change the SSH server banner to a custom string
 # Note that invalid values may confuse or break clients
