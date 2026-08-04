@@ -10,6 +10,7 @@ capabilities="^cap_net_bind_service"
 
 command_background=true
 pidfile="/run/$RC_SVCNAME.pid"
+extra_started_commands="reload"
 error_logger="logger -t '${RC_SVCNAME}' -p daemon.info"
 
 depend() {
@@ -21,4 +22,10 @@ depend() {
 start_pre() {
 	checkpath --directory --owner hussh:hussh --mode 0750 \
 		/var/lib/hussh
+}
+
+reload() {
+	ebegin "Reloading configuration"
+	start-stop-daemon --signal HUP --pidfile "$pidfile"
+	eend $?
 }

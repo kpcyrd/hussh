@@ -6,6 +6,7 @@ Wants=network-online.target
 [Service]
 ExecStart=/usr/bin/hussh -c /etc/hussh.conf
 ExecReload=/bin/kill -HUP $MAINPID
+
 DynamicUser=yes
 StateDirectory=hussh
 WorkingDirectory=/var/lib/hussh
