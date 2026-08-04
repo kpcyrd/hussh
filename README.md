@@ -1,11 +1,11 @@
 # hussh
 
-A minimal SSH server that only implements TCP forwarding. It is intended for
-use as a restricted SSH tunnel, proxy or jump host where interactive login
-sessions and remote command execution are not required or desired. Only
-public-key authentication is supported, password logins are never accepted. An
-optional low-interaction honeypot mode can log or report unsolicited password
-authentication attempts.
+A minimal SSH server that only implements TCP forwarding ("direct-tcpip"). It is
+intended for use as a restricted SSH tunnel, proxy or jump host where
+interactive login sessions and remote command execution are not required or
+desired. Only public-key authentication is supported, password logins are never
+accepted. An optional low-interaction honeypot mode can log or report
+unsolicited password authentication attempts.
 
 - No password authentication, only public keys
 - No shell access or command execution, only TCP forwarding
