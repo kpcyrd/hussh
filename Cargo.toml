@@ -1,6 +1,6 @@
 [package]
 name = "hussh"
-version = "0.1.0"
+version = "0.2.0"
 description = "Memory-safe SSH daemon for restricted TCP forwarding"
 authors = ["kpcyrd <git@rxv.cc>"]
 license = "GPL-3.0-or-later"
