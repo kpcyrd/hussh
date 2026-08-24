@@ -17,7 +17,7 @@ log = "0.4"
 rand = "0.10"
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "system-proxy"] }
 # default features but without `rsa`
-russh = { version = "0.62", default-features = false, features = ["flate2", "aws-lc-rs", "serde"] }
+russh = { version = "0.63", default-features = false, features = ["flate2", "aws-lc-rs", "serde"] }
 serde = { version = "1", features = ["derive"] }
 tokio = { version = "1", features = ["fs", "signal"] }
 toml = "1"
