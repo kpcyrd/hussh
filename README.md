@@ -114,6 +114,20 @@ bait_password_bruteforce = true
 
 ## Installation
 
+<a href="https://repology.org/project/hussh/versions"><img align="right" src="https://repology.org/badge/vertical-allrepos/hussh.svg" alt="Packaging status"></a>
+
+### Alpine
+
+```
+apk add hussh --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+```
+
+### Arch Linux
+
+```
+pacman -S hussh
+```
+
 ### Build from source
 
 ```sh
