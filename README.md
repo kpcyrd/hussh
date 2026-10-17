@@ -128,6 +128,12 @@ apk add hussh --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
 pacman -S hussh
 ```
 
+### Debian (sid)
+
+```
+apt install hussh
+```
+
 ### Build from source
 
 ```sh
