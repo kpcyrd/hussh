@@ -119,7 +119,7 @@ bait_password_bruteforce = true
 ### Alpine
 
 ```
-apk add hussh --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+apk add hussh --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
 ```
 
 ### Arch Linux
