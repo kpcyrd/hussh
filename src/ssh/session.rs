@@ -5,8 +5,7 @@ use crate::relay::Relay;
 use crate::shared::Shared;
 use russh::{
     Channel, ChannelId,
-    keys::PublicKey,
-    server::{Auth, ChannelOpenHandle, Msg, Session},
+    server::{Auth, ChannelOpenHandle, Msg, PublicKeyOffer, Session, VerifiedPublicKey},
 };
 use std::collections::BTreeMap;
 use std::net::SocketAddr;
@@ -42,11 +41,11 @@ impl russh::server::Handler for SshSession {
     async fn auth_publickey_offered(
         &mut self,
         username: &str,
-        public_key: &PublicKey,
+        offer: PublicKeyOffer<'_>,
     ) -> Result<Auth, Self::Error> {
         // The client asks if this username and public key combination would be allowed to authenticate
         // The key has not been challenged yet
-        if self.shared.may_auth(username, public_key) {
+        if self.shared.may_auth(username, offer.public_key) {
             Ok(Auth::Accept)
         } else {
             Ok(Auth::reject())
@@ -66,8 +65,9 @@ impl russh::server::Handler for SshSession {
     async fn auth_publickey(
         &mut self,
         username: &str,
-        public_key: &PublicKey,
+        verified: VerifiedPublicKey<'_>,
     ) -> Result<Auth, Self::Error> {
+        let public_key = verified.public_key;
         let permitted = self.shared.auth(username, public_key);
         if !permitted.is_empty() {
             info!(
